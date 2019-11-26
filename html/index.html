@@ -1,1 +1,53 @@
+<html>
 
+<head>
+    <script src="config.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="script.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="main" style="display:none;">
+        <div class="topbar">
+            <span class="servername">PLACEHOLDER SERVER NAME</span>
+        </div>
+        <div class="me">
+            <img class="pfp" src="http://placehold.it/96x96" height="96" width="96" alt="profile pic">
+            <span class="pname">placeholder</span>
+        </div>
+        <div class="navbar">
+            <div class="navbtn selected" data-page="list">Player List</div>
+            <div class="navbtn" data-page="disc">Recent Disconnects</div>
+            <div class="navbtn" data-page="con">Recent Connects</div>
+            <div class="navbtn" data-action="web">Website</div>
+            <div class="navbtn" data-action="discord">Discord</div>
+            <div class="navbtn" data-action="sg">Steam Group</div>
+        </div>
+        <div class="main-content">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Group</th>
+                        <th>Job</th>
+                        <th>Ping</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    <div class="copied-wrapper" style="width:100%;text-align: center;">
+        <div style="display:none;" class="copied">Steam profile link copied to clipboard</div>
+    </div>
+    <div class="player-context" style="display:none;">
+        <div class="pl-ctx-btn" style="color:red;" data-action="kick">Kick</div>
+        <div class="pl-ctx-btn" data-action="goto">Goto</div>
+        <div class="pl-ctx-btn" data-action="bring">Bring</div>
+        <div class="pl-ctx-btn" style="color:yellow;" data-action="slay">Slay</div>
+    </div>
+</body>
+
+</html>
