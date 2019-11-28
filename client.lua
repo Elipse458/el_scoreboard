@@ -45,9 +45,9 @@ end)
 RegisterNUICallback("toggle", function(data,cb) SetNuiFocus(data, data); open = data end)
 
 RegisterNUICallback("admin-ctx", function(data,cb)
-	local action = data.action
-	local target = data.target
-	local args = data.args
+	local action = data.action -- string
+	local target = data.target -- player server id (string)
+	local args = data.args -- text input from user (can be null if input isn't needed, string)
 	if action=="warn" then
 		ESX.TriggerServerCallback("el_bwh:warn",function(success)
 			if success then ESX.ShowNotification("~g~Successfully warned player") else ESX.ShowNotification("~r~Something went wrong") end
