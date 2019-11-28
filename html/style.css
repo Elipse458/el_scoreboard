@@ -46,10 +46,15 @@ body {
     float: left;
 }
 
-.pname {
+.pinfo {
+    display: inline-block;
     margin-left: 15px;
-    margin-top: 3.75vh;
-    float: left;
+    margin-top: 3vh;
+    clear: right;
+}
+
+.pgroup {
+    text-transform: capitalize;
 }
 
 .servername {
@@ -154,4 +159,72 @@ td:nth-child(4) {
 .pl-ctx-btn:hover {
     background-color: rgba(100, 100, 100, 0.75);
     transition: all 0.5s;
+}
+
+#input-form {
+    text-align: center;
+    top: 40%;
+    left: 40%;
+    display: block;
+    background-color: rgba(0, 0, 0, 0.75);
+    position: absolute;
+    width: 20%;
+    height: 15%;
+}
+
+.input-description {
+    position: relative;
+    top: 15px;
+    font-size: 18pt;
+}
+
+.input-close {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    color: #777;
+    font-size: 20px;
+    font-weight: 650;
+}
+
+.input-close:hover {
+    transition: color 0.7s;
+    color: red;
+}
+
+.input-close::after {
+    content: "✖";
+}
+
+#input-content {
+    margin-top: 2.4vh;
+    width: 90%;
+    padding: 6px;
+    border: 2px solid #666;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+#input-content:active {
+    transition: border-color 0.7s;
+    border-color: #004bbb;
+}
+
+.input-confirm {
+    position: relative;
+    top: 15px;
+    font-size: 16px;
+    background-color: transparent;
+    color: white;
+    padding: 10px 16px;
+    border: 2px solid white;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 90%;
+}
+
+.input-confirm:hover {
+    transition: all 0.4s;
+    background-color: white;
+    color: black;
 }

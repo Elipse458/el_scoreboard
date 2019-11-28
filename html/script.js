@@ -1,9 +1,5 @@
-var pages = {
-    list: "<table><thead><tr><th>ID</th><th>Name</th><th>Group</th><th>Job</th><th>Ping</th></tr></thead><tbody></tbody></table>",
-    con: "<table><thead><tr><th>Name</th><th>Time</th></tr></thead><tbody></tbody></table>",
-    disc: "<table><thead><tr><th>Name</th><th>Reason</th><th>Time</th></tr></thead><tbody></tbody></table>"
-};
-var lasttimeout, mygroup, mouseX, mouseY;
+var lasttimeout, mygroup = "admin",
+    mouseX, mouseY;
 
 Number.prototype.map = function(in_min, in_max, out_min, out_max) {
     return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -17,15 +13,51 @@ function toggleMenu(state) {
     if (state) {
         $(".main").show();
     } else {
-        $(".main,.player-context").hide();
-        $(".main-content").html(pages["list"]);
-        $(".navbtn").removeClass("selected");
-        $($(".navbtn")[0]).addClass("selected");
+        $(".main,.player-context,#input-form").hide();
+        if (Config.navbar_pages.default !== null) {
+            $(".main-content").html(Config.navbar_pages[Config.navbar_pages.default]);
+            $(".navbtn").removeClass("selected");
+            // $($(".navbtn")[Object.keys(Config.navbar_pages).indexOf(Config.navbar_pages.default) - 1]).addClass("selected");
+            $(Config.navbar_buttons).each(function(k, v) {
+                if (v.page == Config.navbar_pages.default) {
+                    $($(".navbtn")[k]).addClass("selected");
+                    return;
+                }
+            });
+        }
     }
 }
 
 function pingColor(ping) {
     return [ping.map(0, 150, 0, 255), ping.map(0, 150, 255, 0)];
+}
+
+function getInput(description, placeholder = "", cb) {
+    $(".input-description").text(description);
+    $("#input-content").prop("placeholder", placeholder);
+    $("#input-content").val();
+    $("#input-form").fadeIn();
+    $(".input-close").click(function() {
+        cb(null);
+        $("#input-form").fadeOut();
+        $(".input-close").off("click");
+        $("#input-form").off("submit");
+    });
+    $("#input-form").submit(function(e) {
+        e.preventDefault();
+        cb($("#input-content").val());
+        $("#input-form").fadeOut();
+        $(".input-close").off("click");
+        $("#input-form").off("submit");
+    });
+}
+
+function sleep(milliseconds) {
+    var start = new Date().getTime();
+    for (var i = 0; i < 1e7; i++) {
+        if ((new Date().getTime() - start) > milliseconds)
+            break;
+    }
 }
 
 function copyText(text, callbackText, callbackFadeTime) {
@@ -45,32 +77,33 @@ function copyText(text, callbackText, callbackFadeTime) {
 $(function() {
     if (Config.el_bwh_installed) {
         // $('<div class="pl-ctx-btn" style="color:red;" data-action="ban">Ban</div>').insertBefore($(".pl-ctx-btn")[0]); // coming soon :)
-        $('<div class="pl-ctx-btn" style="color:orange;" data-action="warn">Warn</div>').insertAfter($(".pl-ctx-btn")[0]);
+        // $('<div class="pl-ctx-btn" style="color:orange;" data-action="warn">Warn</div>').insertAfter($(".pl-ctx-btn")[0]);
+        Config.admin_context_menu.push({ label: "Warn", action: "warn", style: "color:orange;", args: { description: "Warn player", placeholder: "Warn message" } });
     }
+    $(Config.admin_context_menu).each(function(k, v) {
+        $(".player-context").append("<div class='pl-ctx-btn' style='" + v.style + "' data-id='" + k.toString() + "'>" + v.label + "</div>");
+    });
+    $(Config.navbar_buttons).each(function(k, v) {
+        $(".navbar").append("<div class='navbtn' data-id='" + k.toString() + "'>" + v.label + "</div>");
+    });
+    $(Config.navbar_buttons).each(function(k, v) {
+        if (v.page == Config.navbar_pages.default) {
+            $($(".navbtn")[k]).addClass("selected");
+            return;
+        }
+    });
+    $(".main-content").html(Config.navbar_pages[Config.navbar_pages.default !== null ? Config.navbar_pages.default : Object.keys(Config.navbar_pages)[1]]);
     $(document).on("click", "#player", function() {
         copyText("https://steamcommunity.com/profiles/" + hexidtodec($(this).data("steamid")), "Steam profile link copied to clipboard", 1500);
     });
     $(".navbtn").click(function() {
-        var page = $(this).data("page");
-        if (page === undefined) {
-            switch ($(this).data("action")) {
-                case "web":
-                    copyText(Config.website_url, "Website link copied to clipboard", 1500);
-                    break;
-                case "discord":
-                    copyText(Config.discord_url, "Discord link copied to clipboard", 1500);
-                    break;
-                case "sg":
-                    copyText(Config.steam_group_url, "Stean group link copied to clipboard", 1500);
-                    break;
-                default:
-                    console.log("el_scoreboard: unknown button action");
-                    break;
-            }
-        } else {
+        var btn = Config.navbar_buttons[$(this).data("id")];
+        if (btn.page !== undefined) {
+            $(".main-content").html(Config.navbar_pages[btn.page]);
             $(".navbtn").removeClass("selected");
             $(this).addClass("selected");
-            $(".main-content").html(pages[page]);
+        } else {
+            btn.action();
         }
     });
     $(document).on("contextmenu", "#player", function() {
@@ -82,14 +115,25 @@ $(function() {
         }
     });
     $(".pl-ctx-btn").click(function() {
-        var receiver = $($(this).parent()).data("sid");
-        var action = $(this).data("action");
         if (mygroup !== undefined && Config.admin_groups.includes(mygroup)) {
-            var args = null;
-            if (["ban", "warn", "kick"].includes(action)) {
-                args = window.prompt(action == "ban" ? "Enter ban reason" : (action == "warn" ? "Enter warn message" : "Enter kick reason"), "N/A");
+            // var receiver = $($(this).parent()).data("sid");
+            var receiver = "1";
+            var btn = Config.admin_context_menu[$(this).data("id")];
+            if (btn.args !== undefined) {
+                getInput(btn.args.description, btn.args.placeholder, function(args) {
+                    if (args === null)
+                        return;
+                    if (typeof btn.action == "function")
+                        btn.action(receiver, args);
+                    else
+                        $.post("http://el_scoreboard/admin-ctx", JSON.stringify({ action: btn.action, target: receiver, args: args }));
+                });
+            } else {
+                if (typeof btn.action == "function")
+                    btn.action(receiver, args);
+                else
+                    $.post("http://el_scoreboard/admin-ctx", JSON.stringify({ action: btn.action, target: receiver, args: null }));
             }
-            $.post("http://el_scoreboard/admin-ctx", JSON.stringify({ action: action, target: receiver, args: args }));
         }
     });
     $(document).on("click", function() {
@@ -112,6 +156,8 @@ window.addEventListener('message', function(event) {
             });
             break;
         case "update":
+            if (mygroup !== event.data.mygroup)
+                $(".pgroup").html(Config.group_labels[event.data.mygroup] != null ? Config.group_labels[event.data.mygroup] : event.data.mygroup);
             mygroup = event.data.mygroup;
             var newtable = "";
             switch ($(".navbtn.selected").data("page")) {
@@ -165,7 +211,11 @@ $(document).mousemove(function(e) {
 
 document.onkeydown = function(data) {
     if (data.which == 27 || data.which == 120) {
-        $.post("http://el_scoreboard/toggle", JSON.stringify(false));
-        toggleMenu(false);
+        if (data.which == 27 && $("#input-form").css("display") != "none") {
+            $("#input-close").click();
+        } else {
+            toggleMenu(false);
+            $.post("http://el_scoreboard/toggle", JSON.stringify(false));
+        }
     }
 };
