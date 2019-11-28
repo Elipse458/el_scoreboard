@@ -160,7 +160,7 @@ window.addEventListener('message', function(event) {
                 $(".pgroup").html(Config.group_labels[event.data.mygroup] != null ? Config.group_labels[event.data.mygroup] : event.data.mygroup);
             mygroup = event.data.mygroup;
             var newtable = "";
-            switch ($(".navbtn.selected").data("page")) {
+            switch (Config.navbar_buttons[$(".navbtn.selected").data("id")].page) {
                 case "list":
                     $(event.data.data.pd).each(function(k, v) {
                         var pc = pingColor(v.ping);
