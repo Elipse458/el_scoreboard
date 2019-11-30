@@ -13,13 +13,13 @@ Citizen.CreateThread(function()
 		Citizen.Wait(0)
 	end
 	PD = ESX.GetPlayerData()
-	updateNuiData()
 	ESX.TriggerServerCallback("el_scoreboard:getServerName", function(sn)
 		SendNuiMessage(json.encode({type="setup",pn=GetPlayerName(PlayerId()),sid=PD.identifier,sn=sn}))
 	end)
 	ESX.TriggerServerCallback("el_scoreboard:whatsMyGroup", function(mg)
 		mygroup=mg
 	end)
+	updateNuiData()
 end)
 
 Citizen.CreateThread(function()
@@ -42,6 +42,12 @@ AddEventHandler("el_scoreboard:adminSlayReq", function()
 	SetEntityHealth(GetPlayerPed(-1), 0)
 end)
 
+RegisterNetEvent("el_scoreboard:adminHealReq")
+AddEventHandler("el_scoreboard:adminHealReq", function()
+	local ped = GetPlayerPed(-1)
+	SetEntityHealth(ped, GetEntityMaxHealth(ped))
+end)
+
 RegisterNUICallback("toggle", function(data,cb) SetNuiFocus(data, data); open = data end)
 
 RegisterNUICallback("admin-ctx", function(data,cb)
@@ -58,13 +64,22 @@ RegisterNUICallback("admin-ctx", function(data,cb)
 		end, target, args)
 	elseif action=="goto" then
 		ESX.Game.Teleport(GetPlayerPed(-1),GetEntityCoords(GetPlayerPed(GetPlayerFromServerId(target))))
+		ESX.ShowNotification("~g~Successfully went to player")
 	elseif action=="bring" then
-		ESX.TriggerServerCallback("el_scoreboard:gotoPlayer", function(success)
+		ESX.TriggerServerCallback("el_scoreboard:bringPlayer", function(success)
 			if success then ESX.ShowNotification("~g~Successfully brought player") else ESX.ShowNotification("~r~Something went wrong") end
 		end, target)
 	elseif action=="slay" then
 		ESX.TriggerServerCallback("el_scoreboard:slayPlayer", function(success)
 			if success then ESX.ShowNotification("~g~Successfully slain player") else ESX.ShowNotification("~r~Something went wrong") end
+		end, target)
+	elseif action=="heal" then
+		ESX.TriggerServerCallback("el_scoreboard:healPlayer", function(success)
+			if success then ESX.ShowNotification("~g~Successfully healed player") else ESX.ShowNotification("~r~Something went wrong") end
+		end, target)
+	elseif action=="revive" then
+		ESX.TriggerServerCallback("el_scoreboard:revivePlayer", function(success)
+			if success then ESX.ShowNotification("~g~Successfully revived player") else ESX.ShowNotification("~r~Something went wrong") end
 		end, target)
 	end
 end)

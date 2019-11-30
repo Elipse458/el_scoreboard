@@ -17,7 +17,7 @@ var Config = {
         // },
         { label: "Player List", page: "list" },
         { label: "Recent Disconnects", page: "disc" },
-        { label: "Recent connects", page: "con" },
+        { label: "Recent Connects", page: "con" },
         {
             label: "Website",
             action: function() {
@@ -38,11 +38,11 @@ var Config = {
         }
     ],
     navbar_pages: {
-        default: "con", // auto switch to this page when opening scoreboard (set to null to stay on last page)
+        default: "list", // auto switch to this page when opening scoreboard (set to null to stay on last page)
         //mycoolpage: "<span style='color:green;font-size:20pt;'>My cool page</span>",
-        list: "<table><thead><tr><th>ID</th><th>Name</th><th>Group</th><th>Job</th><th>Ping</th></tr></thead><tbody></tbody></table>",
-        con: "<table><thead><tr><th>Name</th><th>Time</th></tr></thead><tbody></tbody></table>",
-        disc: "<table><thead><tr><th>Name</th><th>Reason</th><th>Time</th></tr></thead><tbody></tbody></table>"
+        list: "<table><thead><tr><th>ID</th><th>Name</th><th>Group</th><th>Job</th><th>Ping</th></tr></thead><tbody class='lcd-body'></tbody></table>",
+        con: "<table><thead><tr><th>Name</th><th>Time</th></tr></thead><tbody class='lcd-body'></tbody></table>",
+        disc: "<table><thead><tr><th>Name</th><th>Reason</th><th>Time</th></tr></thead><tbody class='lcd-body'></tbody></table>"
     },
     el_bwh_installed: true, // this will add ban and warn to the admin content menu
     admin_groups: ["admin", "superadmin"],
@@ -55,9 +55,23 @@ var Config = {
         //     console.log("Clicked my cool button","player id "+target.toString(),"input: "+args);
         // }, style:"color:purple;",args:{description:"Write something cool"}}, // args syntax: {description -> string, shows above text input; placeholder -> string, hint in text input (optional)}
         // {label:"My Cool Button",action:"some-action",style:"color:purple;"}, // this button will send a NUI event to client.lua (admin-ctx) with all the parameters, check client.lua and search for admin-ctx; this can also use args, check example above
+        {
+            label: "Copy SteamID",
+            action: function() {
+                copyText($(".player-context").data("steamid"), "SteamID Copied to clipboard", 1500);
+            }
+        },
+        {
+            label: "Copy SteamID64",
+            action: function() {
+                copyText(hexidtodec($(".player-context").data("steamid")), "SteamID Copied to clipboard", 1500);
+            }
+        },
         { label: "Goto", action: "goto" },
         { label: "Bring", action: "bring" },
         { label: "Slay", action: "slay", style: "color:yellow;" },
+        { label: "Heal", action: "heal", style: "color:green;" },
+        { label: "Revive", action: "revive", style: "color:green;" },
         { label: "Kick", action: "kick", style: "color:red;", args: { description: "Kick player", placeholder: "Kick reason" } }
     ]
 };

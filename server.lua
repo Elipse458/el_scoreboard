@@ -3,6 +3,15 @@ local playerdata,recentconnect,recentdisconnect,servername = {},{},{},GetConvar(
 
 TriggerEvent("esx:getSharedObject", function(obj) ESX = obj end)
 
+function isAdmin(xPlayer)
+    local admin = false
+    local xGroup = xPlayer.getGroup()
+    for k,v in ipairs(Config.admin_groups) do
+        if v==xGroup then admin = true; break end
+    end
+    return admin
+end
+
 ESX.RegisterServerCallback("el_scoreboard:getPlayerData", function(source,cb)
     cb(playerdata,recentconnect,recentdisconnect)
 end)
@@ -15,9 +24,9 @@ ESX.RegisterServerCallback("el_scoreboard:whatsMyGroup", function(source,cb)
     cb(ESX.GetPlayerFromId(source).getGroup())
 end)
 
-ESX.RegisterServerCallback("el_scoreboard:gotoPlayer", function(source,cb,target)
+ESX.RegisterServerCallback("el_scoreboard:bringPlayer", function(source,cb,target)
     local xPlayer = ESX.GetPlayerFromId(source)
-    local admin = xPlayer.getGroup()=="admin" or xPlayer.getGroup()=="superadmin"
+    local admin = isAdmin(xPlayer)
     if admin then
         TriggerClientEvent("el_scoreboard:adminBringReq",target,source)
     end
@@ -26,16 +35,34 @@ end)
 
 ESX.RegisterServerCallback("el_scoreboard:slayPlayer", function(source,cb,target)
     local xPlayer = ESX.GetPlayerFromId(source)
-    local admin = xPlayer.getGroup()=="admin" or xPlayer.getGroup()=="superadmin"
+    local admin = isAdmin(xPlayer)
     if admin then
         TriggerClientEvent("el_scoreboard:adminSlayReq",target)
     end
     cb(admin)
 end)
 
+ESX.RegisterServerCallback("el_scoreboard:revivePlayer",function(source,cb,target)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    local admin = isAdmin(xPlayer)
+    if admin then
+        TriggerClientEvent("esx_ambulancejob:revive", target)
+    end
+    cb(admin)
+end)
+
+ESX.RegisterServerCallback("el_scoreboard:healPlayer",function(source,cb,target)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    local admin = isAdmin(xPlayer)
+    if admin then
+        TriggerClientEvent("el_scoreboard:adminHealReq", target)
+    end
+    cb(admin)
+end)
+
 ESX.RegisterServerCallback("el_scoreboard:kick", function(source,cb,target,reason)
     local xPlayer = ESX.GetPlayerFromId(source)
-    local admin = xPlayer.getGroup()=="admin" or xPlayer.getGroup()=="superadmin"
+    local admin = isAdmin(xPlayer)
     if admin then
         DropPlayer(target,reason)
     end

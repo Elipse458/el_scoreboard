@@ -1,5 +1,5 @@
 var lasttimeout, mygroup = "admin",
-    mouseX, mouseY;
+    mouseX, mouseY, mysteamid;
 
 Number.prototype.map = function(in_min, in_max, out_min, out_max) {
     return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -74,6 +74,10 @@ function copyText(text, callbackText, callbackFadeTime) {
     }, callbackFadeTime);
 }
 
+function isAdmin() {
+    return mygroup !== undefined && Config.admin_groups.includes(mygroup);
+}
+
 $(function() {
     if (Config.el_bwh_installed) {
         // $('<div class="pl-ctx-btn" style="color:red;" data-action="ban">Ban</div>').insertBefore($(".pl-ctx-btn")[0]); // coming soon :)
@@ -107,15 +111,16 @@ $(function() {
         }
     });
     $(document).on("contextmenu", "#player", function() {
-        if (mygroup !== undefined && Config.admin_groups.includes(mygroup)) {
+        if (isAdmin()) {
             $(".player-context").data("sid", $(this).data("sid"));
+            $(".player-context").data("steamid", $(this).data("steamid"));
             $(".player-context").css("top", mouseY);
             $(".player-context").css("left", mouseX);
             $(".player-context").fadeIn();
         }
     });
     $(".pl-ctx-btn").click(function() {
-        if (mygroup !== undefined && Config.admin_groups.includes(mygroup)) {
+        if (isAdmin()) {
             // var receiver = $($(this).parent()).data("sid");
             var receiver = "1";
             var btn = Config.admin_context_menu[$(this).data("id")];
@@ -130,7 +135,7 @@ $(function() {
                 });
             } else {
                 if (typeof btn.action == "function")
-                    btn.action(receiver, args);
+                    btn.action(receiver);
                 else
                     $.post("http://el_scoreboard/admin-ctx", JSON.stringify({ action: btn.action, target: receiver, args: null }));
             }
@@ -151,6 +156,7 @@ window.addEventListener('message', function(event) {
         case "setup":
             $(".pname").text(event.data.pn);
             $(".servername").text(event.data.sn);
+            mysteamid = event.data.sid;
             $.get("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" + Config.steam_api_key + "&steamids=" + hexidtodec(event.data.sid), function(data) {
                 $(".pfp").prop("src", data.response.players[0].avatarfull);
             });
@@ -159,45 +165,48 @@ window.addEventListener('message', function(event) {
             if (mygroup !== event.data.mygroup)
                 $(".pgroup").html(Config.group_labels[event.data.mygroup] != null ? Config.group_labels[event.data.mygroup] : event.data.mygroup);
             mygroup = event.data.mygroup;
-            var newtable = "";
-            switch (Config.navbar_buttons[$(".navbtn.selected").data("id")].page) {
-                case "list":
-                    $(event.data.data.pd).each(function(k, v) {
-                        var pc = pingColor(v.ping);
-                        newtable +=
-                            "<tr id='player' data-steamid='" + v.stid + "' data-sid='" + v.sid.toString() + "'>" +
-                            "<td>" + v.sid.toString() + "</td>" +
-                            "<td>" + v.name + "</td>" +
-                            "<td>" + (Config.group_labels[v.group] != null ? Config.group_labels[v.group] : v.group) + "</td>" +
-                            "<td>" + v.job + "</td>" +
-                            "<td><span style='color:rgb(" + pc[0] + "," + pc[1] + ",0);'>" + v.ping.toString() + "</span> ms</td>" +
-                            "</tr>";
-                    });
-                    break;
-                case "con":
-                    $(event.data.data.con).each(function(k, v) {
-                        var time = new Date(v.time * 1000);
-                        newtable +=
-                            "<tr>" +
-                            "<td>" + v.name + "</td>" +
-                            "<td>" + (time.toLocaleDateString() + " " + time.toLocaleTimeString()) + "</td>" +
-                            "</tr>";
-                    });
-                    break;
-                case "disc":
-                    $(event.data.data.con).each(function(k, v) {
-                        var time = new Date(v.time * 1000);
-                        newtable +=
-                            "<tr>" +
-                            "<td>" + v.name + "</td>" +
-                            "<td>" + (v.reason === undefined ? "Disconnected" : v.reason) + "</td>" +
-                            "<td>" + (time.toLocaleDateString() + " " + time.toLocaleTimeString()) + "</td>" +
-                            "</tr>";
-                    });
-                    break;
+            var page = Config.navbar_buttons[$(".navbtn.selected").data("id")].page;
+            if (["list", "con", "disc"].includes(page)) {
+                var newtable = "";
+                switch (page) {
+                    case "list":
+                        $(event.data.data.pd).each(function(k, v) {
+                            var pc = pingColor(v.ping);
+                            newtable +=
+                                "<tr id='player' data-steamid='" + v.stid + "' data-sid='" + v.sid.toString() + "'>" +
+                                "<td>" + v.sid.toString() + "</td>" +
+                                "<td" + (v.stid == mysteamid ? " style='color:gold;'" : "") + ">" + v.name + (v.stid == mysteamid ? " (you)" : "") + "</td>" +
+                                "<td>" + (Config.group_labels[v.group] != null ? Config.group_labels[v.group] : v.group) + "</td>" +
+                                "<td>" + v.job + "</td>" +
+                                "<td><span style='color:rgb(" + pc[0] + "," + pc[1] + ",0);'>" + v.ping.toString() + "</span> ms</td>" +
+                                "</tr>";
+                        });
+                        break;
+                    case "con":
+                        $(event.data.data.con).each(function(k, v) {
+                            var time = new Date(v.time * 1000);
+                            newtable +=
+                                "<tr>" +
+                                "<td>" + v.name + "</td>" +
+                                "<td>" + (time.toLocaleDateString() + " " + time.toLocaleTimeString()) + "</td>" +
+                                "</tr>";
+                        });
+                        break;
+                    case "disc":
+                        $(event.data.data.con).each(function(k, v) {
+                            var time = new Date(v.time * 1000);
+                            newtable +=
+                                "<tr>" +
+                                "<td>" + v.name + "</td>" +
+                                "<td>" + (v.reason === undefined ? "Disconnected" : v.reason) + "</td>" +
+                                "<td>" + (time.toLocaleDateString() + " " + time.toLocaleTimeString()) + "</td>" +
+                                "</tr>";
+                        });
+                        break;
+                }
+                $(".lcd-body").html(newtable);
+                break;
             }
-            $("table > tbody").html(newtable);
-            break;
         default:
             console.log("el_scoreboard: unknown event type");
             break;
