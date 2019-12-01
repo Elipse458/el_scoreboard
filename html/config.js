@@ -72,7 +72,6 @@ var Config = {
         { label: "Slay", action: "slay", style: "color:yellow;" },
         { label: "Heal", action: "heal", style: "color:green;" },
         { label: "Revive", action: "revive", style: "color:green;" },
-        { label: "Kick", action: "kick", style: "color:red;", args: { description: "Kick player", placeholder: "Kick reason" } },
-        { label: "test", action: function() {}, args: { description: "This is the description", placeholder: "This is the placeholder" } }
+        { label: "Kick", action: "kick", style: "color:red;", args: { description: "Kick player", placeholder: "Kick reason" } }
     ]
 };
