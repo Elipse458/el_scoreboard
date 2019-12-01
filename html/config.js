@@ -44,7 +44,7 @@ var Config = {
         con: "<table><thead><tr><th>Name</th><th>Time</th></tr></thead><tbody class='lcd-body'></tbody></table>",
         disc: "<table><thead><tr><th>Name</th><th>Reason</th><th>Time</th></tr></thead><tbody class='lcd-body'></tbody></table>"
     },
-    el_bwh_installed: true, // this will add ban and warn to the admin content menu
+    el_bwh_installed: false, // this will add ban and warn to the admin content menu
     admin_groups: ["admin", "superadmin"],
     admin_context_menu: [ // examples of custom buttons below
         // {label:"My Cool Button",action:function(target){ // this function doesn't require args, you'll only get target which is the player's server id as a string
