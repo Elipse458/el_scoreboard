@@ -48,7 +48,7 @@ action: function(receiver,args) {
   console.log("Hello, world!")
 }
 ```
-**receiver** - string - the server id of the target player
+**receiver** - string - the server id of the target player  
 **args** - string - text input from the user
 
 ### Admin context button - args
