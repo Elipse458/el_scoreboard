@@ -1,6 +1,5 @@
 var lasttimeout, mygroup = "admin",
     mouseX, mouseY, mysteamid;
-
 Number.prototype.map = function(in_min, in_max, out_min, out_max) {
     return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
@@ -9,21 +8,32 @@ function hexidtodec(sid) {
     return BigInt("0x" + sid.replace("steam:", "")).toString(10);
 }
 
-function toggleMenu(state) {
+function selectPageButton(page) {
+    $(".navbtn").removeClass("selected");
+    $(Config.navbar_buttons).each(function(k, v) {
+        if (v.page == page) {
+            $($(".navbtn")[k]).addClass("selected");
+            return;
+        }
+    });
+}
+
+function changePage(page) {
+    $(".main-content").html(Config.navbar_pages[page]);
+}
+
+function toggleMenu(state, peeking = false) {
     if (state) {
+        if (peeking) {
+            changePage("list");
+            selectPageButton("list");
+        }
         $(".main").show();
     } else {
         $(".main,.player-context,#input-form").hide();
         if (Config.navbar_pages.default !== null) {
-            $(".main-content").html(Config.navbar_pages[Config.navbar_pages.default]);
-            $(".navbtn").removeClass("selected");
-            // $($(".navbtn")[Object.keys(Config.navbar_pages).indexOf(Config.navbar_pages.default) - 1]).addClass("selected");
-            $(Config.navbar_buttons).each(function(k, v) {
-                if (v.page == Config.navbar_pages.default) {
-                    $($(".navbtn")[k]).addClass("selected");
-                    return;
-                }
-            });
+            changePage(Config.navbar_pages.default);
+            selectPageButton(Config.navbar_pages.default);
         }
     }
 }
@@ -90,20 +100,15 @@ $(function() {
     $(Config.navbar_buttons).each(function(k, v) {
         $(".navbar").append("<div class='navbtn' data-id='" + k.toString() + "'>" + v.label + "</div>");
     });
-    $(Config.navbar_buttons).each(function(k, v) {
-        if (v.page == Config.navbar_pages.default) {
-            $($(".navbtn")[k]).addClass("selected");
-            return;
-        }
-    });
-    $(".main-content").html(Config.navbar_pages[Config.navbar_pages.default !== null ? Config.navbar_pages.default : Object.keys(Config.navbar_pages)[1]]);
+    selectPageButton(Config.navbar_pages.default);
+    changePage(Config.navbar_pages.default !== null ? Config.navbar_pages.default : Object.keys(Config.navbar_pages)[1]);
     $(document).on("click", "#player", function() {
         copyText("https://steamcommunity.com/profiles/" + hexidtodec($(this).data("steamid")), "Steam profile link copied to clipboard", 1500);
     });
     $(".navbtn").click(function() {
         var btn = Config.navbar_buttons[$(this).data("id")];
         if (btn.page !== undefined) {
-            $(".main-content").html(Config.navbar_pages[btn.page]);
+            changePage(btn.page);
             $(".navbtn").removeClass("selected");
             $(this).addClass("selected");
         } else {
@@ -121,8 +126,7 @@ $(function() {
     });
     $(".pl-ctx-btn").click(function() {
         if (isAdmin()) {
-            // var receiver = $($(this).parent()).data("sid");
-            var receiver = "1";
+            var receiver = $($(this).parent()).data("sid");
             var btn = Config.admin_context_menu[$(this).data("id")];
             if (btn.args !== undefined) {
                 getInput(btn.args.description, btn.args.placeholder, function(args) {
@@ -151,15 +155,19 @@ $(function() {
 window.addEventListener('message', function(event) {
     switch (event.data.type) {
         case "toggle":
-            toggleMenu(event.data.state);
+            toggleMenu(event.data.state, event.data.peeking);
             break;
         case "setup":
             $(".pname").text(event.data.pn);
             $(".servername").text(event.data.sn);
             mysteamid = event.data.sid;
-            $.get("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" + Config.steam_api_key + "&steamids=" + hexidtodec(event.data.sid), function(data) {
-                $(".pfp").prop("src", data.response.players[0].avatarfull);
-            });
+            if (Config.steam_api_key.includes("http://") || Config.steam_api_key.includes("https://")) {
+                $(".pfp").prop("src", Config.steam_api_key);
+            } else {
+                $.get("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" + Config.steam_api_key + "&steamids=" + hexidtodec(event.data.sid), function(data) {
+                    $(".pfp").prop("src", data.response.players[0].avatarfull);
+                });
+            }
             break;
         case "update":
             if (mygroup !== event.data.mygroup)

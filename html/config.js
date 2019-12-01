@@ -1,15 +1,15 @@
 var Config = {
-    group_labels: {
+    group_labels: { // these are custom labels that show instead of the normal group name
         superadmin: "<span style='color:red;'>Super Admin</span>",
         admin: "<span style='color:cyan;'>Admin</span>"
     },
-    steam_api_key: "E344BCC3671F90E1C223F56E2FD8A994", // this is required for getting players' profile pics
+    steam_api_key: "", // this is required for getting players' profile pics (https://steamcommunity.com/dev/apikey) or change this to a url for an image to use instead of players' pfp, recommended resolution is 96x96
     discord_url: "https://discord.gg/GbT49uH",
     website_url: "https://elipse458.me",
     steam_group_url: "https://steamcommunity.com/groups/Illuminated",
     navbar_buttons: [ // examples of custom buttons found below
         // { label: "MyCoolButton", page: "mycoolpage" }, // when page is specified, it will switch to the specified page (if defined)
-        // { // if action is speicifed, page will not switch but the action function will be executed, there's a few custom functions you can use which are in github readme (not yet but they will be, trust me)
+        // { // if action is speicifed, page will not switch but the action function will be executed, there's a few custom functions you can use which are in github readme
         //     label: "MyCoolButton2",
         //     action: function() {
         // console.log("clicked my cool button 2");
@@ -72,6 +72,7 @@ var Config = {
         { label: "Slay", action: "slay", style: "color:yellow;" },
         { label: "Heal", action: "heal", style: "color:green;" },
         { label: "Revive", action: "revive", style: "color:green;" },
-        { label: "Kick", action: "kick", style: "color:red;", args: { description: "Kick player", placeholder: "Kick reason" } }
+        { label: "Kick", action: "kick", style: "color:red;", args: { description: "Kick player", placeholder: "Kick reason" } },
+        { label: "test", action: function() {}, args: { description: "This is the description", placeholder: "This is the placeholder" } }
     ]
 };

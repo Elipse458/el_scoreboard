@@ -1,5 +1,5 @@
 ESX = nil
-local PD,open,mygroup = nil,false,"user"
+local open,peek,mygroup = false,false,"user"
 
 function updateNuiData()
 	ESX.TriggerServerCallback("el_scoreboard:getPlayerData", function(a,b,c)
@@ -8,25 +8,28 @@ function updateNuiData()
 end
 
 Citizen.CreateThread(function()
-	while ESX == nil do
-		TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
-		Citizen.Wait(0)
-	end
-	PD = ESX.GetPlayerData()
+    while ESX == nil do
+        TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
+        Citizen.Wait(0)
+    end
+end)
+
+RegisterNetEvent("esx:playerLoaded")
+AddEventHandler('esx:playerLoaded', function(xPlayer)
 	ESX.TriggerServerCallback("el_scoreboard:getServerName", function(sn)
-		SendNuiMessage(json.encode({type="setup",pn=GetPlayerName(PlayerId()),sid=PD.identifier,sn=sn}))
+		SendNuiMessage(json.encode({type="setup",pn=GetPlayerName(PlayerId()),sid=xPlayer.identifier,sn=sn}))
 	end)
-	ESX.TriggerServerCallback("el_scoreboard:whatsMyGroup", function(mg)
-		mygroup=mg
-	end)
+    ESX.TriggerServerCallback("el_scoreboard:whatsMyGroup", function(mg)
+        mygroup=mg
+    end)
 	updateNuiData()
 end)
 
 Citizen.CreateThread(function()
 	SetNuiFocus(false,false)
 	while true do
-		Citizen.Wait(500)
-		if open then
+		Citizen.Wait(Config.data_update_interval)
+		if open or peek then
 			updateNuiData()
 		end
 	end
@@ -87,13 +90,31 @@ end)
 Citizen.CreateThread(function()
 	while true do
 		Citizen.Wait(0)
-		if IsControlJustPressed(0, 56) then -- f9
+		if IsControlJustPressed(0, Config.open_key) and not peek then
 			open = not open
 			SendNuiMessage(json.encode({type="toggle",state=open}))
 			SetNuiFocus(open, open)
 			if open then
 				updateNuiData()
 			end
+		end
+		if IsControlJustPressed(0, Config.peek_key) and not open then
+			if Config.peek_delay<1 then
+				peek = true
+				SendNuiMessage(json.encode({type="toggle",state=true,peeking=true}))
+			else
+				Citizen.SetTimeout(Config.peek_delay, function()
+					if IsControlPressed(0, Config.peek_key) then
+						updateNuiData()
+						peek = true
+						SendNuiMessage(json.encode({type="toggle",state=true,peeking=true}))
+					end
+				end)
+			end
+		end
+		if IsControlJustReleased(0, Config.peek_key) and peek then
+			peek = false
+			SendNuiMessage(json.encode({type="toggle",state=false,peeking=true}))
 		end
 	end
 end)

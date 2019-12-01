@@ -70,23 +70,22 @@ ESX.RegisterServerCallback("el_scoreboard:kick", function(source,cb,target,reaso
 end)
 
 AddEventHandler("playerConnecting", function(playername, kickreason, def)
-    table.insert(recentconnect,{name=GetPlayerName(source),time=os.time()})
+    table.insert(recentconnect,{name=playername,time=os.time()})
 end)
 
 AddEventHandler("playerDropped", function(reason)
     table.insert(recentdisconnect,{name=GetPlayerName(source),time=os.time(),reason=reason})
 end)
 
--- Citizen.CreateThread(function()
---     Citizen.Wait(1500) -- wait for clients to load their lazy asses
---     for k,v in ipairs(GetPlayers()) do -- if resource gets restarted, re-setup online players
---         TriggerClientEvent("el_scoreboard:join", v, servername)
---     end
--- end)
+Citizen.CreateThread(function()
+    Citizen.Wait(1500) -- wait for clients to load their lazy asses
+    for k,v in ipairs(GetPlayers()) do -- if resource gets restarted, re-setup online players
+        TriggerClientEvent("esx:playerLoaded", v, ESX.GetPlayerFromId(v))
+    end
+end)
 
 Citizen.CreateThread(function()
     while true do
-        Citizen.Wait(500)
         local newplayerdata = {}
         for k,v in ipairs(GetPlayers()) do
             local xPlayer = ESX.GetPlayerFromId(v)
@@ -101,5 +100,6 @@ Citizen.CreateThread(function()
         if #recentdisconnect>=Config.disconnect_history then
             table.remove(recentdisconnect,1)
         end
+        Citizen.Wait(Config.data_update_interval)
     end
 end)
